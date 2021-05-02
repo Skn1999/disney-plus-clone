@@ -1,6 +1,16 @@
 import React from "react";
 import styled from "styled-components";
 import { auth, provider } from "../firebase";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  isUserSignerIn,
+  // selectUserEmail,
+  selectUserName,
+  selectUserPhoto,
+  setUserLoginDetails,
+  setSignOutState,
+} from "../features/user/userSlice";
+import { useHistory } from "react-router-dom";
 
 const nav = [
   { id: 0, link: "/home", icon: "/images/home-icon.svg", title: "HOME" },
@@ -22,10 +32,50 @@ const nav = [
 ];
 
 function Header() {
+  const dispatch = useDispatch();
+  const userName = useSelector(selectUserName);
+  // const userEmail = useSelector(selectUserEmail);
+  const userPhoto = useSelector(selectUserPhoto);
+  const isUserSignedIn = useSelector(isUserSignerIn);
+  const history = useHistory();
+
+  React.useEffect(() => {
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        setUser(user);
+        history.push("/home");
+      }
+    });
+  }, [userName]);
+
+  const setUser = (user) => {
+    dispatch(
+      setUserLoginDetails({
+        name: user.displayName,
+        email: user.email,
+        photo: user.photoURL,
+        meta: user,
+        isSignedIn: true,
+      })
+    );
+  };
+
   const handleAuth = () => {
     auth
       .signInWithPopup(provider)
-      .then((result) => console.log(result))
+      .then((result) => {
+        setUser(result.user);
+      })
+      .catch((err) => alert(err.message));
+  };
+
+  const handleSignOut = () => {
+    auth
+      .signOut()
+      .then(() => {
+        dispatch(setSignOutState());
+        history.replace("/");
+      })
       .catch((err) => alert(err.message));
   };
   return (
@@ -33,15 +83,26 @@ function Header() {
       <Logo>
         <img src="/images/logo.svg" alt="Disney+" />
       </Logo>
-      <NavMenu>
-        {nav.map((item) => (
-          <a key={item.id} href={item.link}>
-            <img src={item.icon} alt={item.title} />
-            <span>{item.title}</span>
-          </a>
-        ))}
-      </NavMenu>
-      <LoginButton onClick={handleAuth}>Login</LoginButton>
+      {!isUserSignedIn ? (
+        <LoginButton onClick={handleAuth}>Login</LoginButton>
+      ) : (
+        <>
+          <NavMenu>
+            {nav.map((item) => (
+              <a key={item.id} href={item.link}>
+                <img src={item.icon} alt={item.title} />
+                <span>{item.title}</span>
+              </a>
+            ))}
+          </NavMenu>
+          <SignOut>
+            <UserImg src={userPhoto} alt={userName} />
+            <Dropdown>
+              <span onClick={handleSignOut}>Sign Out</span>
+            </Dropdown>
+          </SignOut>
+        </>
+      )}
     </Nav>
   );
 }
@@ -148,6 +209,47 @@ const LoginButton = styled.a`
     background-color: #f9f9f9;
     color: black;
     border-color: transparent;
+  }
+`;
+
+const UserImg = styled.img`
+  height: "100%";
+`;
+
+const Dropdown = styled.div`
+  position: absolute;
+  top: 48px;
+  right: 0;
+  background-color: rgb(19, 19, 19);
+  border: 1px solid rgba(151, 151, 151, 0.34);
+  border-radius: 4px;
+  box-shadow: rgb(0 0 0 / 50%) 0px 0px 18px 0px;
+  padding: 10px;
+  font-size: 14px;
+  width: 100px;
+  opacity: 0;
+`;
+
+const SignOut = styled.div`
+  position: relative;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  ${UserImg} {
+    border-radius: 50%;
+    width: 100%;
+    height: 100%;
+  }
+
+  &:hover {
+    ${Dropdown} {
+      opacity: 1;
+      transition: 500ms;
+    }
   }
 `;
 

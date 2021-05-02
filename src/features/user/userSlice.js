@@ -20,7 +20,11 @@ const userSlice = createSlice({
       state.meta = payload.meta;
     },
     setSignOutState: (state) => {
-      state = { ...initState };
+      state.name = "";
+      state.email = "";
+      state.photo = "";
+      state.isSignedIn = false;
+      state.meta = null;
     },
   },
 });
@@ -30,3 +34,6 @@ export const { setSignOutState, setUserLoginDetails } = userSlice.actions;
 export const selectUserName = (state) => state.user.name;
 export const selectUserEmail = (state) => state.user.email;
 export const selectUserPhoto = (state) => state.user.photo;
+export const isUserSignerIn = (state) => state.user.isSignedIn;
+
+export default userSlice.reducer;
