@@ -46,7 +46,7 @@ function Header() {
         history.push("/home");
       }
     });
-  }, [userName]);
+  }, [userName, history]);
 
   const setUser = (user) => {
     dispatch(

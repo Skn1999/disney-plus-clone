@@ -1,37 +1,18 @@
 import React from "react";
+import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { SLIDER_IMAGES } from "./ImageSlider";
 
-function shuffle(array = []) {
-  var currentIndex = array.length,
-    temporaryValue,
-    randomIndex;
-
-  // While there remain elements to shuffle...
-  while (0 !== currentIndex) {
-    // Pick a remaining element...
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex -= 1;
-
-    // And swap it with the current element.
-    temporaryValue = array[currentIndex];
-    array[currentIndex] = array[randomIndex];
-    array[randomIndex] = temporaryValue;
-  }
-
-  return array;
-}
-
-function Recommends({ title }) {
+function Recommends({ title, listSelector }) {
+  const list = useSelector(listSelector);
   return (
     <Container>
       <h4>{title}</h4>
       <Content>
-        {shuffle(SLIDER_IMAGES).map((item) => (
+        {(list ?? []).map((item) => (
           <Wrap key={item.id}>
-            <Link>
-              <img src={item.src} alt="" />
+            <Link to={"/detail/" + item.id}>
+              <img src={item.cardImg} alt={item.title} />
             </Link>
           </Wrap>
         ))}
